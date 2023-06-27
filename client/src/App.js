@@ -1,24 +1,38 @@
-import logo from './logo.svg';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
+import '../src/styles/reset.css';
+import '../src/styles/global.css';
+
+
+// App Components
+import Courses from './components/Courses';
+import CourseDetail from './components/CourseDetail';
+import CreateCourse from './components/CreateCourse';
+import UpdateCourse from './components/UpdateCourse';
+// import UserSignIn from './components/UserSignIn';
+// import UserSignUp from './components/UserSignUp';
+// import UserSignOut from './components/UserSignOut';
+import Header from './components/Header';
+
+// import { ContextProvider } from './context/Context';
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      {/* <ContextProvider> */}
+        <Header />
+
+        <Routes>
+          <Route path='/' element={<Courses />} />
+          <Route path='/courses/:id' element={<CourseDetail />} />
+          <Route path='/courses/create' element={<CreateCourse />} />
+          <Route path='/courses/:id/update' element={<UpdateCourse />} />
+          {/* <Route path='/courses/signup' element={<UserSignUp />} /> */}
+        </Routes>
+      {/* </ContextProvider> */}
+    </Router>
   );
 }
 
