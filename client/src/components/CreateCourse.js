@@ -1,51 +1,49 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import config from '../context/Context';
+import React, { useContext, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import config from "../config";
+import axios from "axios";
+import Context from "../Context";
 
 
 const CreateCourse = () => {
-    const [courses, setCourses] = useState([]);
-    const [user, setUser] = useState([]);
+    const context = useContext(Context);
+    const history = useNavigate();
+
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [estimatedTime, setEstimatedTime] = useState('');
     const [materialsNeeded, setMaterialsNeeded] = useState('');
     const [errors, setErrors] = useState([]);
-    const history = useNavigate();
 
+    // creates a new course
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // setErrors([]);
         const newCourse = { title: title, description: description, estimatedTime: estimatedTime, materialsNeeded: materialsNeeded };
-        try {
-            const response = await config.post(`${config.apiUrl}/courses`, newCourse);
-            const allCourses = [...courses, response.data];
-            setCourses(allCourses);
-            setTitle('');
-            setDescription('');
-            setEstimatedTime('');
-            setMaterialsNeeded('');
-            history.push('/');
-        } catch (error) {
-            console.log(`Error: ${error.message}`);
-        }
-    }
-
-    const handleCancel = () => {
-
+        await axios.post(`${config.apiUrl}/courses`, newCourse, { auth: {username: context.authUser.config.auth.username, password: context.authUser.config.auth.password}})
+            .then(() => {
+                history('/');
+            })
+            .catch((error) => {
+                setErrors(error.response.data.errors);
+                console.log('Error creating a new course', error);
+            })
     }
 
     return (
         <div className="wrap">
             <h2>Create Course</h2>
-
-            <div className="validation--errors">
-                <h3>Validation Errors</h3>
-                <ul>
-                    <li>Please provide a value for "Title"</li>
-                    <li>Please provide a value for "Description"</li>
-                </ul>
-            </div>
+            {/* validation errors */}
+            {
+                errors.length ?
+                (
+                    <div className="validation--errors">
+                        <h3>Validation Errors</h3>
+                        <ul>
+                            {errors.map((error, i) => {return <li key={i}>{error}</li>})}
+                        </ul>
+                    </div>
+                ) : (null)
+            }
             <form onSubmit={handleSubmit}>
                 <div className="main--flex">
                     <div>
@@ -59,7 +57,7 @@ const CreateCourse = () => {
                             onChange={(e) => setTitle(e.target.value)}
                         />
             
-                        {/* <p>By ${user.firstName} ${user.lastName}</p> */}
+                        <p>By {context.authUser.data.firstName} {context.authUser.data.lastName} </p>
 
                         <label htmlFor="courseDescription">Course Description</label>
                         <textarea
@@ -90,7 +88,7 @@ const CreateCourse = () => {
                     </div>
                 </div>
                 <button className="button" type="submit" onClick={handleSubmit}>Create Course</button>
-                <button className="button button-secondary" onClick={handleCancel}>Cancel</button>
+                <Link className="button button-secondary" to='/'>Cancel</Link>
             </form>
         </div>
     )

@@ -46,7 +46,9 @@ module.exports = (sequelize) => {
             notEmpty: {
                 msg: "Please provide an Email Address"
             },
-            isEmail: true
+            isEmail: {
+                msg: 'Please provide a valid Email Address'
+            }
           }
     },
     password: {

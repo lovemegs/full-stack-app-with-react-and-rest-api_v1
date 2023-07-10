@@ -1,51 +1,49 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import config from "../config";
+import Context from "../Context";
 
 const UpdateCourse = () => {
+    const context = useContext(Context);
+    const history = useNavigate();
+
     const {id} = useParams();
-    const [courses, setCourses] = useState([]);
-    const [user, setUser] = useState([]);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [estimatedTime, setEstimatedTime] = useState('');
     const [materialsNeeded, setMaterialsNeeded] = useState('');
-    // const [errors, setErrors] = useState([]);
+    const [errors, setErrors] = useState([]);
 
-    const history = useNavigate();
-
+    // retrieves a specific course
     useEffect(() => {
-        if (courses) {
-            axios.get(`${config.apiUrl}/courses/${id}`)
-                .then(response => {
-                    setTitle(response.data.title);
-                    setDescription(response.data.description);
-                    setEstimatedTime(response.data.estimatedTime);
-                    setMaterialsNeeded(response.data.materialsNeeded);
-                })
-                .catch((error) => {
-                    console.log(`Error: ${error.message}`);
-                });
-        }
+        axios.get(`${config.apiUrl}/courses/${id}`)
+            .then(response => {
+                setTitle(response.data.title);
+                setDescription(response.data.description);
+                setEstimatedTime(response.data.estimatedTime);
+                setMaterialsNeeded(response.data.materialsNeeded);
+            })
+            .catch((error) => {
+                console.log(`Error: ${error.message}`);
+            });
     }, [id]);
 
-
-    const handleEdit = async (id) => {
+    // updates the course
+    const handleEdit = async (e) => {
+        e.preventDefault();
         const updatedCourse = { title: title, description: description, estimatedTime: estimatedTime, materialsNeeded: materialsNeeded };
-            try {
-                const response = await axios.put(`${config.apiUrl}/courses/${id}`, updatedCourse);
-                setCourses(courses.map(course => course.id === id ? { ...response.data } : course));
-                setTitle('');
-                setDescription('');
-                setEstimatedTime('');
-                setMaterialsNeeded('');
-                history.push('/');
-            } catch (error) {
-                console.log(`Error: ${error.message}`);
-            }
+        await axios.put(`${config.apiUrl}/courses/${id}`, updatedCourse, { auth: {username: context.authUser.config.auth.username, password: context.authUser.config.auth.password}})
+            .then(() => {
+                history('/');
+            })
+            .catch((error) => {
+                setErrors(error.response.data.errors)
+                console.log('Error updating course', error)
+            })
     }
 
+    // cancel button
     const handleCancel = (e) => {
         e.preventDefault();
         history(`/courses/${id}`);
@@ -54,6 +52,18 @@ const UpdateCourse = () => {
     return (
         <div className="wrap">
             <h2>Update Course</h2>
+            {/* validation errors */}
+            {
+                errors.length ?
+                (
+                    <div className="validation--errors">
+                        <h3>Validation Errors</h3>
+                        <ul>
+                            {errors.map((error, i) => {return <li key={i}>{error}</li>})}
+                        </ul>
+                    </div>
+                ) : (null)
+            }
             <form onSubmit={(e) => e.preventDefault()}>
                 <div className="main--flex">
                     <div>
@@ -65,9 +75,7 @@ const UpdateCourse = () => {
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                         />
-
-                        {/* ADD Name */}
-                        <p>By {user.firstName} {user.lastName} </p>
+                        <p>By {context.authUser.data.firstName} {context.authUser.data.lastName} </p>
 
                         <label htmlFor="courseDescription">Course Description</label>
                         <textarea
@@ -95,9 +103,8 @@ const UpdateCourse = () => {
                             onChange={(e) => setMaterialsNeeded(e.target.value)}
                         />
                     </div>
-                </div>
-                
-                <button className="button" type="submit" onClick={() => handleEdit(courses.id)}>Update Course</button>
+                </div> 
+                <button className="button" type="submit" onClick={handleEdit}>Update Course</button>
                 <button className="button button-secondary" onClick={handleCancel}>Cancel</button>
             </form>
         </div>

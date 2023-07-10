@@ -6,6 +6,7 @@ import config from '../config';
 const Courses = () => {
     const [courses, setCourses] = useState([]);
 
+    // retrieves the list of courses
     useEffect(() => {
         axios.get(`${config.apiUrl}/courses`)
             .then(response => {
@@ -18,6 +19,7 @@ const Courses = () => {
 
     return (
         <div className="wrap main--grid">
+            {/* maps through the courses to display each one */}
             {courses.map(course => (
                 <Link className="course--module course--link" to={`/courses/${course.id}`} key={course.id}>
                     <h2 className="course--label">Course</h2>
